@@ -24,6 +24,7 @@
       margin: 0;
       padding: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -59,6 +60,23 @@
       font-size: 1.05rem;
       color: var(--gold);
       letter-spacing: 0.5px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
     }
 
     .topup-btn {
@@ -120,10 +138,10 @@
 
     .table-watermark {
       text-align: center;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      letter-spacing: 2px;
-      color: rgba(245, 185, 66, 0.35);
+      letter-spacing: 1.5px;
+      color: rgba(245, 185, 66, 0.4);
       text-transform: uppercase;
     }
 
@@ -209,12 +227,13 @@
       border-radius: 12px;
       padding: 9px 12px;
       text-align: center;
-      font-size: 0.86rem;
+      font-size: 0.85rem;
       font-weight: 700;
-      min-height: 40px;
+      min-height: 42px;
       display: flex;
       align-items: center;
       justify-content: center;
+      line-height: 1.35;
     }
 
     .result-banner.win { color: var(--win-color); border-color: rgba(74, 222, 128, 0.4); }
@@ -281,7 +300,7 @@
     .btn-draw { background: #16a34a; color: #ffffff; }
     .btn-stand { background: #1e293b; color: #ffffff; border: 1px solid rgba(255,255,255,0.2); }
 
-    /* Modal for Virtual Top-up */
+    /* Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -331,7 +350,10 @@
   <div class="app">
     <div class="top-bar">
       <div class="brand">♠ M9 SHAN KOE MEE</div>
-      <button class="topup-btn" id="openTopupBtn">+ Coin ဖြည့်မည်</button>
+      <div class="top-actions">
+        <button class="icon-btn" id="soundToggleBtn" title="Sound">🔊</button>
+        <button class="topup-btn" id="openTopupBtn">+ Coin ဖြည့်မည်</button>
+      </div>
     </div>
 
     <div class="wallets">
@@ -351,7 +373,7 @@
     </div>
 
     <div class="casino-table">
-      <div class="table-watermark">SHAN KOE MEE • FAIR TABLE • 5% FEE</div>
+      <div class="table-watermark">SHAN KOE MEE • 2-CARD DOE 2X • 5% FEE</div>
 
       <div class="seat">
         <div class="seat-info">
@@ -401,7 +423,7 @@
   </div>
 
   <script>
-    const FEE_RATE = 0.05; // 5% Creator Fee
+    const FEE_RATE = 0.05; // 5% Creator Fee on gross profit
 
     const tg = window.Telegram && window.Telegram.WebApp;
     if (tg) {
@@ -409,7 +431,26 @@
       tg.expand();
     }
 
-    // Load saved virtual balances from localStorage
+    // Simple Web Audio SFX (no external audio files needed)
+    let soundEnabled = true;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playTone(freq, duration = 0.12, type = "sine") {
+      if (!soundEnabled || !AudioCtx) return;
+      if (!audioCtx) audioCtx = new AudioCtx();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
     let playerCoins = parseInt(localStorage.getItem("m9_player_coins") || "5000", 10);
     let creatorAccountCoins = parseInt(localStorage.getItem("m9_creator_account") || "0", 10);
     let currentBet = 100;
@@ -436,6 +477,7 @@
     const dealBtn = document.getElementById("dealBtn");
     const drawBtn = document.getElementById("drawBtn");
     const standBtn = document.getElementById("standBtn");
+    const soundToggleBtn = document.getElementById("soundToggleBtn");
 
     function saveAndRenderWallets() {
       localStorage.setItem("m9_player_coins", playerCoins);
@@ -445,7 +487,6 @@
       dealBtn.textContent = `ကတ်ဝေမည် (${currentBet})`;
     }
 
-    // Fair Fisher-Yates Shuffle
     function buildFairDeck() {
       const d = [];
       for (const s of SUITS) {
@@ -474,7 +515,7 @@
 
     function formatHandLabel(evalObj) {
       if (evalObj.isTriple) return `သုံးပုံ (${evalObj.points} ပွင့်)`;
-      if (evalObj.isDoe) return `ဒိုး (${evalObj.points} ပွင့်)`;
+      if (evalObj.isDoe) return `၂-ကတ် ဒိုး (${evalObj.points} ပွင့်)`;
       return `${evalObj.points} ပွင့်`;
     }
 
@@ -503,10 +544,12 @@
 
     function startDeal() {
       if (playerCoins < currentBet) {
+        playTone(220, 0.2, "sawtooth");
         setBanner("Coin မလုံလောက်ပါ — အပေါ်က + Coin ဖြည့်မည် ကို နှိပ်ပါ", "lose");
         return;
       }
 
+      playTone(520, 0.08, "triangle");
       playerCoins -= currentBet;
       saveAndRenderWallets();
 
@@ -523,7 +566,6 @@
       playerPointsEl.textContent = formatHandLabel(pEval);
       dealerPointsEl.textContent = "?";
 
-      // Check Natural Doe (8 or 9) immediately
       if (pEval.isDoe || dEval.isDoe) {
         resolveRound();
         return;
@@ -537,6 +579,7 @@
 
     function playerDraw() {
       if (!inRound || playerHand.length >= 3) return;
+      playTone(600, 0.08, "triangle");
       playerHand.push(deck.pop());
       renderHand(playerCardsEl, playerHand, false);
       playerPointsEl.textContent = formatHandLabel(evaluateHand(playerHand));
@@ -549,7 +592,6 @@
       standBtn.disabled = true;
       dealBtn.disabled = false;
 
-      // Fair dealer AI: draws if <= 4 points and player didn't hit natural Doe
       const pInitial = evaluateHand(playerHand);
       if (!pInitial.isDoe && evaluateHand(dealerHand).points <= 4 && dealerHand.length < 3) {
         dealerHand.push(deck.pop());
@@ -562,7 +604,6 @@
       playerPointsEl.textContent = formatHandLabel(pEval);
       dealerPointsEl.textContent = formatHandLabel(dEval);
 
-      // Rank priority: Triple > Doe > Normal Points
       const pRank = pEval.isTriple ? 3 : pEval.isDoe ? 2 : 1;
       const dRank = dEval.isTriple ? 3 : dEval.isDoe ? 2 : 1;
 
@@ -573,26 +614,35 @@
       else if (pEval.points < dEval.points) outcome = "lose";
 
       if (outcome === "win") {
-        // Profit is equal to currentBet; 5% fee goes strictly to separate Creator Account
-        const fee = Math.max(1, Math.floor(currentBet * FEE_RATE));
-        const netProfit = currentBet - fee;
-        playerCoins += currentBet + netProfit; // Return stake + net profit
-        creatorAccountCoins += fee; // Credited to separate Creator Account
-        setBanner(`နိုင်ပါတယ်! +${netProfit} Coin (Creator အကောင့်သို့ 5% Fee: ${fee} Coin)`, "win");
+        // 2-Card Doe pays 2x gross profit; normal win pays 1x gross profit
+        const multiplier = pEval.isDoe ? 2 : 1;
+        const grossProfit = currentBet * multiplier;
+        const fee = Math.max(1, Math.floor(grossProfit * FEE_RATE));
+        const netProfit = grossProfit - fee;
+
+        playerCoins += currentBet + netProfit;
+        creatorAccountCoins += fee;
+        playTone(880, 0.16, "sine");
+        setBanner(
+          `နိုင်ပါတယ်! +${netProfit.toLocaleString()} Coin${pEval.isDoe ? " (2x ဒိုး)" : ""} (Creator 5%: ${fee})`,
+          "win"
+        );
       } else if (outcome === "lose") {
-        setBanner(`ဒိုင်နိုင်သွားပါတယ်! -${currentBet} Coin`, "lose");
+        playTone(240, 0.18, "sawtooth");
+        setBanner(`ဒိုင်နိုင်သွားပါတယ်! -${currentBet.toLocaleString()} Coin`, "lose");
       } else {
         playerCoins += currentBet;
-        setBanner(`သရေကျပါတယ်! လောင်းကြေး ${currentBet} Coin ပြန်ရ`);
+        playTone(440, 0.1, "sine");
+        setBanner(`သရေကျပါတယ်! လောင်းကြေး ${currentBet.toLocaleString()} Coin ပြန်ရ`);
       }
 
       saveAndRenderWallets();
     }
 
-    // Chip selection
     document.querySelectorAll(".chip").forEach((chip) => {
       chip.addEventListener("click", () => {
         if (inRound) return;
+        playTone(500, 0.05, "sine");
         document.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
         chip.classList.add("active");
         currentBet = parseInt(chip.dataset.bet, 10);
@@ -600,7 +650,11 @@
       });
     });
 
-    // Top-up modal controls
+    soundToggleBtn.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      soundToggleBtn.textContent = soundEnabled ? "🔊" : "🔇";
+    });
+
     const topupModal = document.getElementById("topupModal");
     document.getElementById("openTopupBtn").addEventListener("click", () => topupModal.classList.add("open"));
     document.getElementById("closeTopupBtn").addEventListener("click", () => topupModal.classList.remove("open"));
@@ -610,6 +664,7 @@
         playerCoins += add;
         saveAndRenderWallets();
         topupModal.classList.remove("open");
+        playTone(760, 0.14, "sine");
         setBanner(`Virtual Coin +${add.toLocaleString()} ထည့်သွင်းပြီးပါပြီ!`, "win");
       });
     });

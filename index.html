@@ -3,19 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shan Koe Mee Mini App</title>
+  <title>M9 Shan Koe Mee - Casino Table</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg-main: #0b0d10;
-      --bg-card: #151921;
-      --bg-elevated: #1e2430;
-      --text-primary: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent-gold: #f5b942;
-      --accent-win: #22c55e;
-      --accent-lose: #ef4444;
-      --border-subtle: rgba(255, 255, 255, 0.12);
+      --felt-green: #0d3b26;
+      --felt-dark: #072216;
+      --wood-border: #3d2314;
+      --gold: #f5b942;
+      --gold-light: #fde08d;
+      --card-bg: #ffffff;
+      --text-light: #f8fafc;
+      --text-muted: #cbd5e1;
+      --win-color: #4ade80;
+      --lose-color: #f87171;
     }
 
     * {
@@ -26,278 +27,396 @@
     }
 
     body {
-      background: radial-gradient(circle at top, #171c26 0%, var(--bg-main) 70%);
-      color: var(--text-primary);
+      background: radial-gradient(circle at center, #111827 0%, #05070a 100%);
+      color: var(--text-light);
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 16px;
+      padding: 12px;
     }
 
     .app {
       width: 100%;
-      max-width: 440px;
+      max-width: 450px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
 
-    .header {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 16px;
-      padding: 14px 16px;
+    /* Top Bar */
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(245, 185, 66, 0.35);
+      border-radius: 14px;
+      padding: 10px 14px;
     }
 
-    .title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+    .brand {
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--gold);
+      letter-spacing: 0.5px;
     }
 
-    .subtitle {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .badge {
-      background: #ffffff;
+    .topup-btn {
+      background: linear-gradient(135deg, var(--gold), #d97706);
       color: #0b0d10;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 5px 10px;
+      border: none;
       border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
     }
 
-    .stats-grid {
+    /* Wallets */
+    .wallets {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
 
-    .stat-box {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 14px;
-      padding: 12px 14px;
+    .wallet-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 10px 12px;
     }
 
-    .stat-label {
-      font-size: 0.75rem;
+    .wallet-card.creator {
+      border-color: rgba(245, 185, 66, 0.4);
+      background: rgba(30, 27, 18, 0.85);
+    }
+
+    .wallet-title {
+      font-size: 0.72rem;
       color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
     }
 
-    .stat-value {
-      font-size: 1.2rem;
+    .wallet-amount {
+      font-size: 1.15rem;
       font-weight: 800;
-      margin-top: 4px;
-      color: var(--accent-gold);
+      margin-top: 3px;
+      color: var(--gold-light);
     }
 
-    .table-area {
-      background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: 18px;
-      padding: 16px;
+    /* Casino Table */
+    .casino-table {
+      background: radial-gradient(circle at center, var(--felt-green) 0%, var(--felt-dark) 100%);
+      border: 6px solid var(--wood-border);
+      box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.75), 0 10px 25px rgba(0, 0, 0, 0.6);
+      border-radius: 28px;
+      padding: 16px 14px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
+      position: relative;
     }
 
-    .hand-section {
+    .table-watermark {
+      text-align: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: rgba(245, 185, 66, 0.35);
+      text-transform: uppercase;
+    }
+
+    .seat {
       display: flex;
       flex-direction: column;
+      align-items: center;
       gap: 8px;
     }
 
-    .hand-header {
+    .seat-info {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-size: 0.9rem;
-      font-weight: 600;
+      gap: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
     }
 
-    .score-pill {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
-      padding: 3px 10px;
+    .point-badge {
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(245, 185, 66, 0.45);
+      color: var(--gold-light);
+      padding: 2px 10px;
       border-radius: 999px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
     }
 
-    .cards {
+    .card-row {
       display: flex;
-      gap: 10px;
-      min-height: 92px;
-      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 94px;
     }
 
     .card {
       width: 64px;
-      height: 90px;
-      background: #ffffff;
+      height: 92px;
+      background: var(--card-bg);
       color: #111827;
       border-radius: 10px;
+      padding: 6px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 7px;
       font-weight: 800;
-      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
       border: 1px solid #e2e8f0;
+      animation: dealAnim 0.22s ease-out;
     }
 
-    .card.red {
-      color: #dc2626;
+    @keyframes dealAnim {
+      from { transform: translateY(-10px) scale(0.95); opacity: 0.4; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
     }
 
-    .card-suit-center {
+    .card.red { color: #dc2626; }
+    .card.back {
+      background: repeating-linear-gradient(
+        45deg,
+        #991b1b,
+        #991b1b 6px,
+        #7f1d1d 6px,
+        #7f1d1d 12px
+      );
+      border: 2px solid #f8fafc;
+    }
+
+    .card-center {
       text-align: center;
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       line-height: 1;
     }
 
-    .card-bottom {
+    .card-corner-bottom {
       text-align: right;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
     }
 
-    .status-box {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
+    /* Status Banner */
+    .result-banner {
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 12px;
-      padding: 10px 12px;
+      padding: 9px 12px;
       text-align: center;
-      font-size: 0.9rem;
-      font-weight: 600;
-      min-height: 42px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      min-height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .status-win {
-      color: var(--accent-win);
+    .result-banner.win { color: var(--win-color); border-color: rgba(74, 222, 128, 0.4); }
+    .result-banner.lose { color: var(--lose-color); border-color: rgba(248, 113, 113, 0.4); }
+
+    /* Chip Selector */
+    .chips-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
     }
 
-    .status-lose {
-      color: var(--accent-lose);
+    .chip {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px dashed #ffffff;
+      font-weight: 800;
+      font-size: 0.78rem;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      transition: transform 0.15s;
     }
 
-    .controls {
+    .chip.c100 { background: #1d4ed8; }
+    .chip.c500 { background: #b91c1c; }
+    .chip.c1000 { background: #b45309; }
+    .chip.active {
+      transform: scale(1.12);
+      box-shadow: 0 0 0 3px var(--gold);
+    }
+
+    /* Action Buttons */
+    .actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
 
-    .controls .full {
+    .actions .deal-btn {
       grid-column: span 2;
+      background: linear-gradient(135deg, var(--gold), #d97706);
+      color: #0b0d10;
     }
 
-    button {
+    .btn {
       border: none;
       border-radius: 12px;
-      padding: 12px 14px;
+      padding: 12px;
       font-size: 0.92rem;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
-      transition: transform 0.12s ease, opacity 0.15s ease;
     }
 
-    button:active {
-      transform: scale(0.98);
-    }
-
-    button:disabled {
+    .btn:disabled {
       opacity: 0.4;
       cursor: not-allowed;
     }
 
-    .btn-primary {
-      background: #ffffff;
-      color: #0b0d10;
+    .btn-draw { background: #16a34a; color: #ffffff; }
+    .btn-stand { background: #1e293b; color: #ffffff; border: 1px solid rgba(255,255,255,0.2); }
+
+    /* Modal for Virtual Top-up */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
     }
 
-    .btn-gold {
-      background: var(--accent-gold);
-      color: #0b0d10;
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: #111827;
+      border: 1px solid rgba(245, 185, 66, 0.4);
+      border-radius: 16px;
+      padding: 18px;
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
-    .btn-secondary {
-      background: var(--bg-elevated);
-      color: var(--text-primary);
-      border: 1px solid var(--border-subtle);
+    .modal h3 { color: var(--gold); font-size: 1.05rem; }
+    .modal p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; }
+
+    .topup-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .pack-btn {
+      background: #1e293b;
+      color: var(--gold-light);
+      border: 1px solid rgba(245, 185, 66, 0.35);
+      border-radius: 10px;
+      padding: 10px;
+      font-weight: 700;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <div class="header">
-      <div>
-        <div class="title">Shan Koe Mee</div>
-        <div class="subtitle">Telegram Mini Game</div>
-      </div>
-      <div class="badge">5% Creator Fee</div>
+    <div class="top-bar">
+      <div class="brand">♠ M9 SHAN KOE MEE</div>
+      <button class="topup-btn" id="openTopupBtn">+ Coin ဖြည့်မည်</button>
     </div>
 
-    <div class="stats-grid">
-      <div class="stat-box">
-        <div class="stat-label">သင့် Coin</div>
-        <div class="stat-value" id="playerCoins">0</div>
+    <div class="wallets">
+      <div class="wallet-card">
+        <div class="wallet-title">
+          <span>ကစားသမား လက်ကျန်</span>
+        </div>
+        <div class="wallet-amount" id="playerBalance">5,000</div>
       </div>
-      <div class="stat-box">
-        <div class="stat-label">Creator Fee Pool (5%)</div>
-        <div class="stat-value" id="creatorPool">0</div>
+      <div class="wallet-card creator">
+        <div class="wallet-title">
+          <span>Creator အကောင့် (5%)</span>
+          <span>ID: #M9-ADMIN</span>
+        </div>
+        <div class="wallet-amount" id="creatorBalance">0</div>
       </div>
     </div>
 
-    <div class="table-area">
-      <div class="hand-section">
-        <div class="hand-header">
+    <div class="casino-table">
+      <div class="table-watermark">SHAN KOE MEE • FAIR TABLE • 5% FEE</div>
+
+      <div class="seat">
+        <div class="seat-info">
           <span>ဒိုင်လူကြီး (Dealer)</span>
-          <span class="score-pill" id="dealerScore">ရမှတ်: -</span>
+          <span class="point-badge" id="dealerPoints">?</span>
         </div>
-        <div class="cards" id="dealerCards"></div>
+        <div class="card-row" id="dealerCards"></div>
       </div>
 
-      <div class="status-box" id="statusText">ကတ်ဝေဖို့ အောက်က ခလုတ်ကို နှိပ်ပါ</div>
+      <div class="result-banner" id="resultBanner">Chip ရွေးပြီး ကတ်ဝေမည် ကို နှိပ်ပါ</div>
 
-      <div class="hand-section">
-        <div class="hand-header">
+      <div class="seat">
+        <div class="seat-info">
           <span>သင် (Player)</span>
-          <span class="score-pill" id="playerScore">ရမှတ်: -</span>
+          <span class="point-badge" id="playerPoints">-</span>
         </div>
-        <div class="cards" id="playerCards"></div>
+        <div class="card-row" id="playerCards"></div>
       </div>
 
-      <div class="controls">
-        <button class="btn-primary full" id="dealBtn">ကတ်ဝေမည်</button>
-        <button class="btn-gold" id="drawBtn" disabled>ကတ်ဆွဲမည်</button>
-        <button class="btn-secondary" id="standBtn" disabled>ရပ်မည်</button>
+      <div class="chips-row">
+        <button class="chip c100 active" data-bet="100">100</button>
+        <button class="chip c500" data-bet="500">500</button>
+        <button class="chip c1000" data-bet="1000">1000</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn deal-btn" id="dealBtn">ကတ်ဝေမည် (100)</button>
+        <button class="btn btn-draw" id="drawBtn" disabled>ကတ်ဆွဲမည်</button>
+        <button class="btn btn-stand" id="standBtn" disabled>ရပ်မည်</button>
       </div>
     </div>
   </div>
 
+  <!-- Virtual Coin Top-up Modal -->
+  <div class="modal-backdrop" id="topupModal">
+    <div class="modal">
+      <h3>Virtual Coin ဖြည့်သွင်းရန်</h3>
+      <p>ဖျော်ဖြေရေး ကစားရန်အတွက် အခမဲ့ Virtual Coin ပမာဏကို ရွေးချယ်ဖြည့်သွင်းနိုင်ပါသည်။</p>
+      <div class="topup-options">
+        <button class="pack-btn" data-add="1000">+ 1,000 Coins</button>
+        <button class="pack-btn" data-add="5000">+ 5,000 Coins</button>
+        <button class="pack-btn" data-add="10000">+ 10,000 Coins</button>
+        <button class="pack-btn" data-add="50000">+ 50,000 Coins</button>
+      </div>
+      <button class="btn btn-stand" id="closeTopupBtn">ပိတ်မည်</button>
+    </div>
+  </div>
+
   <script>
-    // ==========================================
-    // ဒီနေရာမှာ Coin နဲ့ Fee ပမာဏကို လွယ်လွယ်ပြင်နိုင်ပါတယ်
-    // ==========================================
-    const CONFIG = {
-      STARTING_COINS: 5000, // အစ Coin ပမာဏ (လိုသလို ပြောင်းပါ)
-      BET_AMOUNT: 200,      // တစ်ပွဲ လောင်းကြေး Coin (လိုသလို ပြောင်းပါ)
-      FEE_RATE: 0.05        // 5% Creator Fee
-    };
+    const FEE_RATE = 0.05; // 5% Creator Fee
 
     const tg = window.Telegram && window.Telegram.WebApp;
     if (tg) {
       tg.ready();
       tg.expand();
     }
+
+    // Load saved virtual balances from localStorage
+    let playerCoins = parseInt(localStorage.getItem("m9_player_coins") || "5000", 10);
+    let creatorAccountCoins = parseInt(localStorage.getItem("m9_creator_account") || "0", 10);
+    let currentBet = 100;
+    let deck = [];
+    let playerHand = [];
+    let dealerHand = [];
+    let inRound = false;
 
     const SUITS = [
       { symbol: "♠", red: false },
@@ -307,39 +426,35 @@
     ];
     const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 
-    let coins = CONFIG.STARTING_COINS;
-    let creatorFeeTotal = 0;
-    let deck = [];
-    let playerHand = [];
-    let dealerHand = [];
-    let roundActive = false;
-
-    const playerCoinsEl = document.getElementById("playerCoins");
-    const creatorPoolEl = document.getElementById("creatorPool");
+    const playerBalanceEl = document.getElementById("playerBalance");
+    const creatorBalanceEl = document.getElementById("creatorBalance");
     const dealerCardsEl = document.getElementById("dealerCards");
     const playerCardsEl = document.getElementById("playerCards");
-    const dealerScoreEl = document.getElementById("dealerScore");
-    const playerScoreEl = document.getElementById("playerScore");
-    const statusTextEl = document.getElementById("statusText");
+    const dealerPointsEl = document.getElementById("dealerPoints");
+    const playerPointsEl = document.getElementById("playerPoints");
+    const resultBannerEl = document.getElementById("resultBanner");
     const dealBtn = document.getElementById("dealBtn");
     const drawBtn = document.getElementById("drawBtn");
     const standBtn = document.getElementById("standBtn");
 
-    function updateLabels() {
-      dealBtn.textContent = `ကတ်ဝေမည် (${CONFIG.BET_AMOUNT})`;
-      playerCoinsEl.textContent = coins.toLocaleString();
-      creatorPoolEl.textContent = creatorFeeTotal.toLocaleString();
+    function saveAndRenderWallets() {
+      localStorage.setItem("m9_player_coins", playerCoins);
+      localStorage.setItem("m9_creator_account", creatorAccountCoins);
+      playerBalanceEl.textContent = playerCoins.toLocaleString();
+      creatorBalanceEl.textContent = creatorAccountCoins.toLocaleString();
+      dealBtn.textContent = `ကတ်ဝေမည် (${currentBet})`;
     }
 
-    function createDeck() {
+    // Fair Fisher-Yates Shuffle
+    function buildFairDeck() {
       const d = [];
-      for (const suit of SUITS) {
-        for (const rank of RANKS) {
+      for (const s of SUITS) {
+        for (const r of RANKS) {
           let val = 0;
-          if (rank === "A") val = 1;
-          else if (["10", "J", "Q", "K"].includes(rank)) val = 0;
-          else val = parseInt(rank, 10);
-          d.push({ rank, suit: suit.symbol, red: suit.red, val });
+          if (r === "A") val = 1;
+          else if (["10", "J", "Q", "K"].includes(r)) val = 0;
+          else val = parseInt(r, 10);
+          d.push({ rank: r, suit: s.symbol, red: s.red, val });
         }
       }
       for (let i = d.length - 1; i > 0; i--) {
@@ -349,106 +464,161 @@
       return d;
     }
 
-    function calcScore(hand) {
-      const sum = hand.reduce((acc, c) => acc + c.val, 0);
-      return sum % 10;
+    function evaluateHand(hand) {
+      const total = hand.reduce((sum, c) => sum + c.val, 0);
+      const points = total % 10;
+      const isDoe = hand.length === 2 && (points === 8 || points === 9);
+      const isTriple = hand.length === 3 && hand[0].rank === hand[1].rank && hand[1].rank === hand[2].rank;
+      return { points, isDoe, isTriple };
     }
 
-    function renderCards(container, hand) {
+    function formatHandLabel(evalObj) {
+      if (evalObj.isTriple) return `သုံးပုံ (${evalObj.points} ပွင့်)`;
+      if (evalObj.isDoe) return `ဒိုး (${evalObj.points} ပွင့်)`;
+      return `${evalObj.points} ပွင့်`;
+    }
+
+    function renderHand(container, hand, hideCards = false) {
       container.innerHTML = "";
-      hand.forEach((card) => {
-        const div = document.createElement("div");
-        div.className = `card ${card.red ? "red" : ""}`;
-        div.innerHTML = `
-          <div>${card.rank}${card.suit}</div>
-          <div class="card-suit-center">${card.suit}</div>
-          <div class="card-bottom">${card.rank}</div>
-        `;
-        container.appendChild(div);
+      hand.forEach((c) => {
+        const cardEl = document.createElement("div");
+        if (hideCards) {
+          cardEl.className = "card back";
+        } else {
+          cardEl.className = `card ${c.red ? "red" : ""}`;
+          cardEl.innerHTML = `
+            <div>${c.rank}${c.suit}</div>
+            <div class="card-center">${c.suit}</div>
+            <div class="card-corner-bottom">${c.rank}</div>
+          `;
+        }
+        container.appendChild(cardEl);
       });
     }
 
-    function setStatus(text, type = "") {
-      statusTextEl.textContent = text;
-      statusTextEl.className = `status-box ${type ? "status-" + type : ""}`;
+    function setBanner(msg, state = "") {
+      resultBannerEl.textContent = msg;
+      resultBannerEl.className = `result-banner ${state}`;
     }
 
-    function startRound() {
-      if (coins < CONFIG.BET_AMOUNT) {
-        coins = CONFIG.STARTING_COINS;
-        setStatus(`Coin ကုန်သွားသဖြင့် ${CONFIG.STARTING_COINS.toLocaleString()} Coin ပြန်ဖြည့်ပေးထားပါတယ်`);
-        updateLabels();
+    function startDeal() {
+      if (playerCoins < currentBet) {
+        setBanner("Coin မလုံလောက်ပါ — အပေါ်က + Coin ဖြည့်မည် ကို နှိပ်ပါ", "lose");
         return;
       }
 
-      coins -= CONFIG.BET_AMOUNT;
-      updateLabels();
+      playerCoins -= currentBet;
+      saveAndRenderWallets();
 
-      deck = createDeck();
+      deck = buildFairDeck();
       playerHand = [deck.pop(), deck.pop()];
       dealerHand = [deck.pop(), deck.pop()];
-      roundActive = true;
+      inRound = true;
 
-      renderCards(playerCardsEl, playerHand);
-      renderCards(dealerCardsEl, dealerHand);
+      renderHand(playerCardsEl, playerHand, false);
+      renderHand(dealerCardsEl, dealerHand, true);
 
-      playerScoreEl.textContent = `ရမှတ်: ${calcScore(playerHand)}`;
-      dealerScoreEl.textContent = `ရမှတ်: ${calcScore(dealerHand)}`;
+      const pEval = evaluateHand(playerHand);
+      const dEval = evaluateHand(dealerHand);
+      playerPointsEl.textContent = formatHandLabel(pEval);
+      dealerPointsEl.textContent = "?";
+
+      // Check Natural Doe (8 or 9) immediately
+      if (pEval.isDoe || dEval.isDoe) {
+        resolveRound();
+        return;
+      }
 
       dealBtn.disabled = true;
       drawBtn.disabled = false;
       standBtn.disabled = false;
-      setStatus("ကတ်ထပ်ဆွဲမလား၊ ရပ်မလား ရွေးပါ");
+      setBanner("ကတ်ထပ်ဆွဲမလား၊ ရပ်မလား ရွေးချယ်ပါ");
     }
 
-    function drawCard() {
-      if (!roundActive || playerHand.length >= 3) return;
+    function playerDraw() {
+      if (!inRound || playerHand.length >= 3) return;
       playerHand.push(deck.pop());
-      renderCards(playerCardsEl, playerHand);
-      playerScoreEl.textContent = `ရမှတ်: ${calcScore(playerHand)}`;
-      drawBtn.disabled = true;
-      finishRound();
+      renderHand(playerCardsEl, playerHand, false);
+      playerPointsEl.textContent = formatHandLabel(evaluateHand(playerHand));
+      resolveRound();
     }
 
-    function finishRound() {
-      roundActive = false;
+    function resolveRound() {
+      inRound = false;
       drawBtn.disabled = true;
       standBtn.disabled = true;
       dealBtn.disabled = false;
 
-      if (calcScore(dealerHand) <= 4 && dealerHand.length < 3) {
+      // Fair dealer AI: draws if <= 4 points and player didn't hit natural Doe
+      const pInitial = evaluateHand(playerHand);
+      if (!pInitial.isDoe && evaluateHand(dealerHand).points <= 4 && dealerHand.length < 3) {
         dealerHand.push(deck.pop());
-        renderCards(dealerCardsEl, dealerHand);
       }
 
-      const pScore = calcScore(playerHand);
-      const dScore = calcScore(dealerHand);
-      playerScoreEl.textContent = `ရမှတ်: ${pScore}`;
-      dealerScoreEl.textContent = `ရမှတ်: ${dScore}`;
+      renderHand(dealerCardsEl, dealerHand, false);
 
-      const grossWin = CONFIG.BET_AMOUNT * 2;
+      const pEval = evaluateHand(playerHand);
+      const dEval = evaluateHand(dealerHand);
+      playerPointsEl.textContent = formatHandLabel(pEval);
+      dealerPointsEl.textContent = formatHandLabel(dEval);
 
-      if (pScore > dScore) {
-        const fee = Math.floor(grossWin * CONFIG.FEE_RATE);
-        const netWin = grossWin - fee;
-        coins += netWin;
-        creatorFeeTotal += fee;
-        setStatus(`နိုင်ပါတယ်! +${netWin} Coin ရရှိ (5% Fee: -${fee})`, "win");
-      } else if (pScore < dScore) {
-        setStatus(`ရှုံးပါတယ်! -${CONFIG.BET_AMOUNT} Coin`, "lose");
+      // Rank priority: Triple > Doe > Normal Points
+      const pRank = pEval.isTriple ? 3 : pEval.isDoe ? 2 : 1;
+      const dRank = dEval.isTriple ? 3 : dEval.isDoe ? 2 : 1;
+
+      let outcome = "draw";
+      if (pRank > dRank) outcome = "win";
+      else if (pRank < dRank) outcome = "lose";
+      else if (pEval.points > dEval.points) outcome = "win";
+      else if (pEval.points < dEval.points) outcome = "lose";
+
+      if (outcome === "win") {
+        // Profit is equal to currentBet; 5% fee goes strictly to separate Creator Account
+        const fee = Math.max(1, Math.floor(currentBet * FEE_RATE));
+        const netProfit = currentBet - fee;
+        playerCoins += currentBet + netProfit; // Return stake + net profit
+        creatorAccountCoins += fee; // Credited to separate Creator Account
+        setBanner(`နိုင်ပါတယ်! +${netProfit} Coin (Creator အကောင့်သို့ 5% Fee: ${fee} Coin)`, "win");
+      } else if (outcome === "lose") {
+        setBanner(`ဒိုင်နိုင်သွားပါတယ်! -${currentBet} Coin`, "lose");
       } else {
-        coins += CONFIG.BET_AMOUNT;
-        setStatus(`သရေကျပါတယ်! လောင်းကြေး ${CONFIG.BET_AMOUNT} Coin ပြန်ရ`);
+        playerCoins += currentBet;
+        setBanner(`သရေကျပါတယ်! လောင်းကြေး ${currentBet} Coin ပြန်ရ`);
       }
 
-      updateLabels();
+      saveAndRenderWallets();
     }
 
-    dealBtn.addEventListener("click", startRound);
-    drawBtn.addEventListener("click", drawCard);
-    standBtn.addEventListener("click", finishRound);
+    // Chip selection
+    document.querySelectorAll(".chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        if (inRound) return;
+        document.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        currentBet = parseInt(chip.dataset.bet, 10);
+        saveAndRenderWallets();
+      });
+    });
 
-    updateLabels();
+    // Top-up modal controls
+    const topupModal = document.getElementById("topupModal");
+    document.getElementById("openTopupBtn").addEventListener("click", () => topupModal.classList.add("open"));
+    document.getElementById("closeTopupBtn").addEventListener("click", () => topupModal.classList.remove("open"));
+    document.querySelectorAll(".pack-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const add = parseInt(btn.dataset.add, 10);
+        playerCoins += add;
+        saveAndRenderWallets();
+        topupModal.classList.remove("open");
+        setBanner(`Virtual Coin +${add.toLocaleString()} ထည့်သွင်းပြီးပါပြီ!`, "win");
+      });
+    });
+
+    dealBtn.addEventListener("click", startDeal);
+    drawBtn.addEventListener("click", playerDraw);
+    standBtn.addEventListener("click", resolveRound);
+
+    saveAndRenderWallets();
   </script>
 </body>
 </html>

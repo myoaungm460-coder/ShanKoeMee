@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>M9 Shan Koe Mee - Casino Table</title>
+  <title>M9 Shan Koe Mee - Voice & Emotes</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -17,6 +17,8 @@
       --text-muted: #cbd5e1;
       --win-color: #4ade80;
       --lose-color: #f87171;
+      --kpay-color: #0056d2;
+      --wave-color: #eab308;
     }
 
     * {
@@ -33,15 +35,15 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 12px;
+      padding: 8px;
     }
 
     .app {
       width: 100%;
-      max-width: 450px;
+      max-width: 540px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
 
     /* Top Bar */
@@ -49,22 +51,23 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(15, 23, 42, 0.9);
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.94);
       border: 1px solid rgba(245, 185, 66, 0.35);
-      border-radius: 14px;
-      padding: 10px 14px;
+      border-radius: 12px;
+      padding: 8px 10px;
     }
 
     .brand {
       font-weight: 800;
-      font-size: 1.05rem;
+      font-size: 0.88rem;
       color: var(--gold);
-      letter-spacing: 0.5px;
+      white-space: nowrap;
     }
 
     .top-actions {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       align-items: center;
     }
 
@@ -73,127 +76,267 @@
       color: var(--text-light);
       border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 0.75rem;
+      padding: 5px 8px;
+      font-size: 0.7rem;
       font-weight: 700;
       cursor: pointer;
+      white-space: nowrap;
     }
 
-    .topup-btn {
+    .icon-btn.mic-on {
+      background: rgba(22, 163, 74, 0.28);
+      border-color: #4ade80;
+      color: #4ade80;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.35);
+    }
+
+    .pay-btn {
       background: linear-gradient(135deg, var(--gold), #d97706);
       color: #0b0d10;
       border: none;
       border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 0.78rem;
+      padding: 5px 10px;
+      font-size: 0.72rem;
       font-weight: 800;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     /* Wallets */
     .wallets {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 8px;
     }
 
     .wallet-card {
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 12px;
-      padding: 10px 12px;
+      border-radius: 11px;
+      padding: 8px 10px;
     }
 
     .wallet-card.creator {
       border-color: rgba(245, 185, 66, 0.4);
-      background: rgba(30, 27, 18, 0.85);
+      background: rgba(30, 27, 18, 0.9);
     }
 
     .wallet-title {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       color: var(--text-muted);
       display: flex;
       justify-content: space-between;
+      gap: 4px;
     }
 
     .wallet-amount {
-      font-size: 1.15rem;
+      font-size: 1.02rem;
       font-weight: 800;
-      margin-top: 3px;
+      margin-top: 2px;
       color: var(--gold-light);
     }
 
     /* Casino Table */
     .casino-table {
       background: radial-gradient(circle at center, var(--felt-green) 0%, var(--felt-dark) 100%);
-      border: 6px solid var(--wood-border);
-      box-shadow: inset 0 0 35px rgba(0, 0, 0, 0.75), 0 10px 25px rgba(0, 0, 0, 0.6);
-      border-radius: 28px;
-      padding: 16px 14px;
+      border: 4px solid var(--wood-border);
+      box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.75), 0 8px 20px rgba(0, 0, 0, 0.6);
+      border-radius: 22px;
+      padding: 10px 8px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      position: relative;
+      gap: 8px;
     }
 
-    .table-watermark {
-      text-align: center;
-      font-size: 0.7rem;
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 4px;
+      font-size: 0.64rem;
       font-weight: 700;
-      letter-spacing: 1.5px;
-      color: rgba(245, 185, 66, 0.4);
-      text-transform: uppercase;
+      color: rgba(245, 185, 66, 0.7);
+      padding: 0 4px;
     }
 
-    .seat {
+    /* Dealer Seat */
+    .dealer-seat {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 5px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
     }
 
     .seat-info {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 5px;
+      font-size: 0.76rem;
       font-weight: 700;
     }
 
     .point-badge {
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.65);
       border: 1px solid rgba(245, 185, 66, 0.45);
       color: var(--gold-light);
-      padding: 2px 10px;
+      padding: 2px 7px;
       border-radius: 999px;
-      font-size: 0.78rem;
+      font-size: 0.64rem;
+      white-space: nowrap;
+    }
+
+    .point-badge.special {
+      background: linear-gradient(135deg, rgba(245, 185, 66, 0.35), rgba(217, 119, 6, 0.45));
+      border-color: var(--gold);
+      color: #ffffff;
     }
 
     .card-row {
       display: flex;
       justify-content: center;
-      gap: 8px;
-      min-height: 94px;
+      gap: 4px;
+      min-height: 52px;
+    }
+
+    .dealer-seat .card-row {
+      min-height: 68px;
+      gap: 6px;
+    }
+
+    .dealer-seat .card {
+      width: 46px;
+      height: 66px;
+      padding: 4px;
+    }
+
+    /* 8 Player Seats Grid */
+    .players-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .player-seat {
+      position: relative;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 12px;
+      padding: 6px 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .player-seat.is-you {
+      background: rgba(245, 185, 66, 0.12);
+      border-color: rgba(245, 185, 66, 0.75);
+    }
+
+    .player-seat.speaking {
+      border-color: #4ade80;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.45);
+    }
+
+    .player-seat.win-seat {
+      border-color: rgba(74, 222, 128, 0.75);
+      background: rgba(22, 163, 74, 0.16);
+    }
+
+    .player-seat.lose-seat {
+      border-color: rgba(248, 113, 113, 0.6);
+      background: rgba(185, 28, 28, 0.14);
+    }
+
+    /* Floating Emote Bubble */
+    .emote-bubble {
+      position: absolute;
+      top: -10px;
+      right: 6px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1.5px solid var(--gold);
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 1.15rem;
+      z-index: 10;
+      pointer-events: none;
+      animation: popEmote 1.8s ease-out forwards;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    @keyframes popEmote {
+      0% { transform: scale(0.4) translateY(8px); opacity: 0; }
+      18% { transform: scale(1.2) translateY(-2px); opacity: 1; }
+      75% { transform: scale(1) translateY(-6px); opacity: 1; }
+      100% { transform: scale(0.85) translateY(-16px); opacity: 0; }
+    }
+
+    .seat-top {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+    }
+
+    .seat-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .mic-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulseMic 0.8s infinite alternate;
+    }
+
+    @keyframes pulseMic {
+      from { opacity: 0.35; transform: scale(0.85); }
+      to { opacity: 1; transform: scale(1.2); }
+    }
+
+    .seat-coins {
+      font-size: 0.64rem;
+      color: var(--gold-light);
+      white-space: nowrap;
     }
 
     .card {
-      width: 64px;
-      height: 92px;
+      width: 36px;
+      height: 50px;
       background: var(--card-bg);
       color: #111827;
-      border-radius: 10px;
-      padding: 6px;
+      border-radius: 6px;
+      padding: 2px 3px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       font-weight: 800;
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
       border: 1px solid #e2e8f0;
-      animation: dealAnim 0.22s ease-out;
+      animation: dealAnim 0.18s ease-out;
+      font-size: 0.62rem;
+      line-height: 1;
+      flex-shrink: 0;
     }
 
     @keyframes dealAnim {
-      from { transform: translateY(-10px) scale(0.95); opacity: 0.4; }
+      from { transform: translateY(-6px) scale(0.95); opacity: 0.4; }
       to { transform: translateY(0) scale(1); opacity: 1; }
     }
 
@@ -202,44 +345,90 @@
       background: repeating-linear-gradient(
         45deg,
         #991b1b,
-        #991b1b 6px,
-        #7f1d1d 6px,
-        #7f1d1d 12px
+        #991b1b 4px,
+        #7f1d1d 4px,
+        #7f1d1d 8px
       );
-      border: 2px solid #f8fafc;
+      border: 1.5px solid #f8fafc;
     }
 
     .card-center {
       text-align: center;
-      font-size: 1.4rem;
+      font-size: 0.85rem;
       line-height: 1;
+    }
+
+    .dealer-seat .card-center {
+      font-size: 1.05rem;
     }
 
     .card-corner-bottom {
       text-align: right;
-      font-size: 0.78rem;
+      font-size: 0.58rem;
     }
 
     /* Status Banner */
     .result-banner {
-      background: rgba(0, 0, 0, 0.55);
+      background: rgba(0, 0, 0, 0.62);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      padding: 9px 12px;
+      border-radius: 10px;
+      padding: 7px 9px;
       text-align: center;
-      font-size: 0.85rem;
+      font-size: 0.76rem;
       font-weight: 700;
-      min-height: 42px;
+      min-height: 34px;
       display: flex;
       align-items: center;
       justify-content: center;
-      line-height: 1.35;
+      line-height: 1.3;
     }
 
-    .result-banner.win { color: var(--win-color); border-color: rgba(74, 222, 128, 0.4); }
-    .result-banner.lose { color: var(--lose-color); border-color: rgba(248, 113, 113, 0.4); }
+    .result-banner.win { color: var(--win-color); border-color: rgba(74, 222, 128, 0.45); }
+    .result-banner.lose { color: var(--lose-color); border-color: rgba(248, 113, 113, 0.45); }
 
-    /* Chip Selector */
+    /* Emote Bar */
+    .emote-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.38);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      padding: 4px 8px;
+    }
+
+    .emote-label {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding-left: 4px;
+    }
+
+    .emote-btns {
+      display: flex;
+      gap: 4px;
+    }
+
+    .emote-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.12s;
+    }
+
+    .emote-btn:active {
+      transform: scale(1.22);
+    }
+
+    /* Chips */
     .chips-row {
       display: flex;
       justify-content: center;
@@ -247,18 +436,18 @@
     }
 
     .chip {
-      width: 52px;
-      height: 52px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      border: 3px dashed #ffffff;
+      border: 2.5px dashed #ffffff;
       font-weight: 800;
-      font-size: 0.78rem;
+      font-size: 0.7rem;
       color: #ffffff;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
       transition: transform 0.15s;
     }
 
@@ -266,15 +455,15 @@
     .chip.c500 { background: #b91c1c; }
     .chip.c1000 { background: #b45309; }
     .chip.active {
-      transform: scale(1.12);
-      box-shadow: 0 0 0 3px var(--gold);
+      transform: scale(1.1);
+      box-shadow: 0 0 0 2.5px var(--gold);
     }
 
-    /* Action Buttons */
+    /* Controls */
     .actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 7px;
     }
 
     .actions .deal-btn {
@@ -285,9 +474,9 @@
 
     .btn {
       border: none;
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 0.92rem;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.84rem;
       font-weight: 800;
       cursor: pointer;
     }
@@ -300,15 +489,15 @@
     .btn-draw { background: #16a34a; color: #ffffff; }
     .btn-stand { background: #1e293b; color: #ffffff; border: 1px solid rgba(255,255,255,0.2); }
 
-    /* Modal */
+    /* Modal & Payment Tabs */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.82);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: 12px;
       z-index: 50;
     }
 
@@ -317,32 +506,98 @@
     .modal {
       background: #111827;
       border: 1px solid rgba(245, 185, 66, 0.4);
-      border-radius: 16px;
-      padding: 18px;
+      border-radius: 14px;
+      padding: 14px;
       width: 100%;
-      max-width: 360px;
+      max-width: 390px;
+      max-height: 88vh;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .modal h3 { color: var(--gold); font-size: 1.05rem; }
-    .modal p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; }
+    .modal h3 { color: var(--gold); font-size: 0.98rem; }
+    .modal p, .modal li, .modal label { font-size: 0.76rem; color: var(--text-muted); line-height: 1.4; }
+    .modal ul { padding-left: 16px; display: flex; flex-direction: column; gap: 5px; }
 
-    .topup-options {
+    .mode-tabs, .gateway-tabs {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
 
-    .pack-btn {
+    .tab-btn {
       background: #1e293b;
-      color: var(--gold-light);
-      border: 1px solid rgba(245, 185, 66, 0.35);
-      border-radius: 10px;
-      padding: 10px;
+      color: var(--text-light);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 8px;
+      padding: 7px;
+      font-size: 0.76rem;
       font-weight: 700;
       cursor: pointer;
+    }
+
+    .tab-btn.active.deposit { background: #15803d; border-color: #4ade80; }
+    .tab-btn.active.withdraw { background: #b45309; border-color: var(--gold); }
+    .tab-btn.active.kpay { background: var(--kpay-color); border-color: #60a5fa; }
+    .tab-btn.active.wave { background: #a16207; color: #fef08a; border-color: var(--wave-color); }
+
+    .pay-box {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9px;
+      padding: 9px;
+      font-size: 0.76rem;
+      line-height: 1.4;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-field {
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #ffffff;
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    .input-field:focus { border-color: var(--gold); }
+
+    .submit-pay-btn {
+      background: linear-gradient(135deg, var(--gold), #d97706);
+      color: #0b0d10;
+      border: none;
+      border-radius: 9px;
+      padding: 9px;
+      font-weight: 800;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-size: 0.7rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
     }
   </style>
 </head>
@@ -351,31 +606,37 @@
     <div class="top-bar">
       <div class="brand">♠ M9 SHAN KOE MEE</div>
       <div class="top-actions">
+        <button class="icon-btn" id="micToggleBtn" title="Voice Mic">🎤 Off</button>
+        <button class="icon-btn" id="openRulesBtn">စည်းမျဉ်း</button>
         <button class="icon-btn" id="soundToggleBtn" title="Sound">🔊</button>
-        <button class="topup-btn" id="openTopupBtn">+ Coin ဖြည့်မည်</button>
+        <button class="pay-btn" id="openPayBtn">Wave / KPay</button>
       </div>
     </div>
 
     <div class="wallets">
       <div class="wallet-card">
         <div class="wallet-title">
-          <span>ကစားသမား လက်ကျန်</span>
+          <span>သင့် လက်ကျန် (Seat 1)</span>
         </div>
         <div class="wallet-amount" id="playerBalance">5,000</div>
       </div>
       <div class="wallet-card creator">
         <div class="wallet-title">
-          <span>Creator အကောင့် (5%)</span>
-          <span>ID: #M9-ADMIN</span>
+          <span>Creator Fee (5%)</span>
+          <span>#M9-ADMIN</span>
         </div>
         <div class="wallet-amount" id="creatorBalance">0</div>
       </div>
     </div>
 
     <div class="casino-table">
-      <div class="table-watermark">SHAN KOE MEE • 2-CARD DOE 2X • 5% FEE</div>
+      <div class="table-header">
+        <span>9-SEAT TABLE • VOICE & EMOTES</span>
+        <span>DOE 2X/3X • FLUSH/STRAIGHT 3X • TRIPLE 5X</span>
+      </div>
 
-      <div class="seat">
+      <!-- Seat 0: Dealer -->
+      <div class="dealer-seat">
         <div class="seat-info">
           <span>ဒိုင်လူကြီး (Dealer)</span>
           <span class="point-badge" id="dealerPoints">?</span>
@@ -383,14 +644,22 @@
         <div class="card-row" id="dealerCards"></div>
       </div>
 
-      <div class="result-banner" id="resultBanner">Chip ရွေးပြီး ကတ်ဝေမည် ကို နှိပ်ပါ</div>
+      <!-- Seats 1 to 8: 8 Players -->
+      <div class="players-grid" id="playersGrid"></div>
 
-      <div class="seat">
-        <div class="seat-info">
-          <span>သင် (Player)</span>
-          <span class="point-badge" id="playerPoints">-</span>
+      <div class="result-banner" id="resultBanner">Chip ရွေးပြီး ကတ်ဝေမည် ကို နှိပ်ပါ (၉ ယောက်ဝိုင်း)</div>
+
+      <!-- Emote Reaction Bar -->
+      <div class="emote-bar">
+        <span class="emote-label">Emote ပို့ရန်:</span>
+        <div class="emote-btns">
+          <button class="emote-btn" data-emote="😂">😂</button>
+          <button class="emote-btn" data-emote="🔥">🔥</button>
+          <button class="emote-btn" data-emote="👏">👏</button>
+          <button class="emote-btn" data-emote="😱">😱</button>
+          <button class="emote-btn" data-emote="😎">😎</button>
+          <button class="emote-btn" data-emote="💸">💸</button>
         </div>
-        <div class="card-row" id="playerCards"></div>
       </div>
 
       <div class="chips-row">
@@ -407,273 +676,71 @@
     </div>
   </div>
 
-  <!-- Virtual Coin Top-up Modal -->
-  <div class="modal-backdrop" id="topupModal">
+  <!-- Wave / KPay Modal -->
+  <div class="modal-backdrop" id="payModal">
     <div class="modal">
-      <h3>Virtual Coin ဖြည့်သွင်းရန်</h3>
-      <p>ဖျော်ဖြေရေး ကစားရန်အတွက် အခမဲ့ Virtual Coin ပမာဏကို ရွေးချယ်ဖြည့်သွင်းနိုင်ပါသည်။</p>
-      <div class="topup-options">
-        <button class="pack-btn" data-add="1000">+ 1,000 Coins</button>
-        <button class="pack-btn" data-add="5000">+ 5,000 Coins</button>
-        <button class="pack-btn" data-add="10000">+ 10,000 Coins</button>
-        <button class="pack-btn" data-add="50000">+ 50,000 Coins</button>
+      <h3>Wave Money / KBZPay Wallet</h3>
+      <p>ငွေသွင်း / ငွေထုတ် တောင်းဆိုမှု (Demo UI) — တကယ့်ငွေကြေးစနစ်အတွက် Server ဘက်တွင် အတည်ပြုချက် (Verification) ထည့်သွင်းရန် လိုအပ်ပါသည်။</p>
+
+      <div class="mode-tabs">
+        <button class="tab-btn active deposit" id="tabDeposit">ငွေသွင်း (Deposit)</button>
+        <button class="tab-btn withdraw" id="tabWithdraw">ငွေထုတ် (Withdraw)</button>
       </div>
-      <button class="btn btn-stand" id="closeTopupBtn">ပိတ်မည်</button>
+
+      <div class="gateway-tabs">
+        <button class="tab-btn active kpay" data-gw="KBZPay">KBZPay</button>
+        <button class="tab-btn wave" data-gw="Wave Money">Wave Money</button>
+      </div>
+
+      <div class="pay-box" id="payInfoBox">
+        <strong>KBZPay Account:</strong> 09-770000000 (M9 Admin)<br />
+        ငွေလွှဲပြီးပါက Transaction ID နောက်ဆုံး ၆ လုံးကို ထည့်သွင်းပါ။
+      </div>
+
+      <div class="field-group">
+        <label for="payPhone">သင့် Wave / KPay ဖုန်းနံပါတ်</label>
+        <input class="input-field" id="payPhone" type="tel" placeholder="09xxxxxxxxx" />
+      </div>
+
+      <div class="field-group">
+        <label for="payAmount">ပမာဏ (Coins / MMK)</label>
+        <input class="input-field" id="payAmount" type="number" min="100" step="100" value="5000" />
+      </div>
+
+      <div class="field-group" id="txIdGroup">
+        <label for="payTxId">Transaction ID (ငွေသွင်းအတွက်)</label>
+        <input class="input-field" id="payTxId" type="text" placeholder="ဥပမာ - TX849201" />
+      </div>
+
+      <button class="submit-pay-btn" id="submitPayBtn">ငွေသွင်း တောင်းဆိုမည်</button>
+
+      <div>
+        <label style="display:block; margin-bottom:5px;">မှတ်တမ်းများ (Recent Requests)</label>
+        <div class="history-list" id="payHistoryList"></div>
+      </div>
+
+      <button class="btn btn-stand" id="closePayBtn">ပိတ်မည်</button>
+    </div>
+  </div>
+
+  <!-- Rules Modal -->
+  <div class="modal-backdrop" id="rulesModal">
+    <div class="modal">
+      <h3>၉ ယောက်ဝိုင်း ရှမ်းကိုးမီး စည်းမျဉ်းများ</h3>
+      <ul>
+        <li><strong>ဝိုင်းဖွဲ့ပုံ:</strong> ဒိုင်လူကြီး (၁) + ကစားသမား (၈) စုစုပေါင်း <strong>၉ ယောက်</strong> ပါဝင်သည်။</li>
+        <li><strong>Voice & Emote:</strong> ထိပ်ဘားမှ <strong>🎤 Mic</strong> ကိုနှိပ်ပြီး အသံဖွင့်နိုင်သလို အောက်ခြေ Emote ခလုတ်များဖြင့် Reaction ပို့နိုင်သည်။</li>
+        <li><strong>သုံးပုံ (Triple - 5x):</strong> ၃ ကတ်လုံး နံပါတ်တူခြင်း</li>
+        <li><strong>၂-ကတ် ဒိုး အရောင်/အပူး (3x):</strong> ၂ ကတ် 8/9 ဖြစ်ပြီး အပွင့်တူ သို့မဟုတ် နံပါတ်တူခြင်း</li>
+        <li><strong>၂-ကတ် ဒိုး ရိုးရိုး (2x):</strong> ၂ ကတ်တည်းဖြင့် 8 သို့မဟုတ် 9 ရခြင်း</li>
+        <li><strong>၃-ကတ် အရောင်တူ / အစဉ်လိုက် (3x):</strong> Flush သို့မဟုတ် Straight ရခြင်း</li>
+        <li><strong>ပုံမှန်အပွင့် (1x):</strong> 0–9 အထိ အပွင့်ကြီးသူ နိုင်သည် (နိုင်ကြေးမှ 5% Creator Fee ဖြတ်သည်)</li>
+      </ul>
+      <button class="btn btn-stand" id="closeRulesBtn">နားလည်ပါပြီ</button>
     </div>
   </div>
 
   <script>
-    const FEE_RATE = 0.05; // 5% Creator Fee on gross profit
+    const FEE_RATE = 0.05;
 
-    const tg = window.Telegram && window.Telegram.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-    }
-
-    // Simple Web Audio SFX (no external audio files needed)
-    let soundEnabled = true;
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    let audioCtx = null;
-
-    function playTone(freq, duration = 0.12, type = "sine") {
-      if (!soundEnabled || !AudioCtx) return;
-      if (!audioCtx) audioCtx = new AudioCtx();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = type;
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + duration);
-    }
-
-    let playerCoins = parseInt(localStorage.getItem("m9_player_coins") || "5000", 10);
-    let creatorAccountCoins = parseInt(localStorage.getItem("m9_creator_account") || "0", 10);
-    let currentBet = 100;
-    let deck = [];
-    let playerHand = [];
-    let dealerHand = [];
-    let inRound = false;
-
-    const SUITS = [
-      { symbol: "♠", red: false },
-      { symbol: "♣", red: false },
-      { symbol: "♥", red: true },
-      { symbol: "♦", red: true }
-    ];
-    const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
-
-    const playerBalanceEl = document.getElementById("playerBalance");
-    const creatorBalanceEl = document.getElementById("creatorBalance");
-    const dealerCardsEl = document.getElementById("dealerCards");
-    const playerCardsEl = document.getElementById("playerCards");
-    const dealerPointsEl = document.getElementById("dealerPoints");
-    const playerPointsEl = document.getElementById("playerPoints");
-    const resultBannerEl = document.getElementById("resultBanner");
-    const dealBtn = document.getElementById("dealBtn");
-    const drawBtn = document.getElementById("drawBtn");
-    const standBtn = document.getElementById("standBtn");
-    const soundToggleBtn = document.getElementById("soundToggleBtn");
-
-    function saveAndRenderWallets() {
-      localStorage.setItem("m9_player_coins", playerCoins);
-      localStorage.setItem("m9_creator_account", creatorAccountCoins);
-      playerBalanceEl.textContent = playerCoins.toLocaleString();
-      creatorBalanceEl.textContent = creatorAccountCoins.toLocaleString();
-      dealBtn.textContent = `ကတ်ဝေမည် (${currentBet})`;
-    }
-
-    function buildFairDeck() {
-      const d = [];
-      for (const s of SUITS) {
-        for (const r of RANKS) {
-          let val = 0;
-          if (r === "A") val = 1;
-          else if (["10", "J", "Q", "K"].includes(r)) val = 0;
-          else val = parseInt(r, 10);
-          d.push({ rank: r, suit: s.symbol, red: s.red, val });
-        }
-      }
-      for (let i = d.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [d[i], d[j]] = [d[j], d[i]];
-      }
-      return d;
-    }
-
-    function evaluateHand(hand) {
-      const total = hand.reduce((sum, c) => sum + c.val, 0);
-      const points = total % 10;
-      const isDoe = hand.length === 2 && (points === 8 || points === 9);
-      const isTriple = hand.length === 3 && hand[0].rank === hand[1].rank && hand[1].rank === hand[2].rank;
-      return { points, isDoe, isTriple };
-    }
-
-    function formatHandLabel(evalObj) {
-      if (evalObj.isTriple) return `သုံးပုံ (${evalObj.points} ပွင့်)`;
-      if (evalObj.isDoe) return `၂-ကတ် ဒိုး (${evalObj.points} ပွင့်)`;
-      return `${evalObj.points} ပွင့်`;
-    }
-
-    function renderHand(container, hand, hideCards = false) {
-      container.innerHTML = "";
-      hand.forEach((c) => {
-        const cardEl = document.createElement("div");
-        if (hideCards) {
-          cardEl.className = "card back";
-        } else {
-          cardEl.className = `card ${c.red ? "red" : ""}`;
-          cardEl.innerHTML = `
-            <div>${c.rank}${c.suit}</div>
-            <div class="card-center">${c.suit}</div>
-            <div class="card-corner-bottom">${c.rank}</div>
-          `;
-        }
-        container.appendChild(cardEl);
-      });
-    }
-
-    function setBanner(msg, state = "") {
-      resultBannerEl.textContent = msg;
-      resultBannerEl.className = `result-banner ${state}`;
-    }
-
-    function startDeal() {
-      if (playerCoins < currentBet) {
-        playTone(220, 0.2, "sawtooth");
-        setBanner("Coin မလုံလောက်ပါ — အပေါ်က + Coin ဖြည့်မည် ကို နှိပ်ပါ", "lose");
-        return;
-      }
-
-      playTone(520, 0.08, "triangle");
-      playerCoins -= currentBet;
-      saveAndRenderWallets();
-
-      deck = buildFairDeck();
-      playerHand = [deck.pop(), deck.pop()];
-      dealerHand = [deck.pop(), deck.pop()];
-      inRound = true;
-
-      renderHand(playerCardsEl, playerHand, false);
-      renderHand(dealerCardsEl, dealerHand, true);
-
-      const pEval = evaluateHand(playerHand);
-      const dEval = evaluateHand(dealerHand);
-      playerPointsEl.textContent = formatHandLabel(pEval);
-      dealerPointsEl.textContent = "?";
-
-      if (pEval.isDoe || dEval.isDoe) {
-        resolveRound();
-        return;
-      }
-
-      dealBtn.disabled = true;
-      drawBtn.disabled = false;
-      standBtn.disabled = false;
-      setBanner("ကတ်ထပ်ဆွဲမလား၊ ရပ်မလား ရွေးချယ်ပါ");
-    }
-
-    function playerDraw() {
-      if (!inRound || playerHand.length >= 3) return;
-      playTone(600, 0.08, "triangle");
-      playerHand.push(deck.pop());
-      renderHand(playerCardsEl, playerHand, false);
-      playerPointsEl.textContent = formatHandLabel(evaluateHand(playerHand));
-      resolveRound();
-    }
-
-    function resolveRound() {
-      inRound = false;
-      drawBtn.disabled = true;
-      standBtn.disabled = true;
-      dealBtn.disabled = false;
-
-      const pInitial = evaluateHand(playerHand);
-      if (!pInitial.isDoe && evaluateHand(dealerHand).points <= 4 && dealerHand.length < 3) {
-        dealerHand.push(deck.pop());
-      }
-
-      renderHand(dealerCardsEl, dealerHand, false);
-
-      const pEval = evaluateHand(playerHand);
-      const dEval = evaluateHand(dealerHand);
-      playerPointsEl.textContent = formatHandLabel(pEval);
-      dealerPointsEl.textContent = formatHandLabel(dEval);
-
-      const pRank = pEval.isTriple ? 3 : pEval.isDoe ? 2 : 1;
-      const dRank = dEval.isTriple ? 3 : dEval.isDoe ? 2 : 1;
-
-      let outcome = "draw";
-      if (pRank > dRank) outcome = "win";
-      else if (pRank < dRank) outcome = "lose";
-      else if (pEval.points > dEval.points) outcome = "win";
-      else if (pEval.points < dEval.points) outcome = "lose";
-
-      if (outcome === "win") {
-        // 2-Card Doe pays 2x gross profit; normal win pays 1x gross profit
-        const multiplier = pEval.isDoe ? 2 : 1;
-        const grossProfit = currentBet * multiplier;
-        const fee = Math.max(1, Math.floor(grossProfit * FEE_RATE));
-        const netProfit = grossProfit - fee;
-
-        playerCoins += currentBet + netProfit;
-        creatorAccountCoins += fee;
-        playTone(880, 0.16, "sine");
-        setBanner(
-          `နိုင်ပါတယ်! +${netProfit.toLocaleString()} Coin${pEval.isDoe ? " (2x ဒိုး)" : ""} (Creator 5%: ${fee})`,
-          "win"
-        );
-      } else if (outcome === "lose") {
-        playTone(240, 0.18, "sawtooth");
-        setBanner(`ဒိုင်နိုင်သွားပါတယ်! -${currentBet.toLocaleString()} Coin`, "lose");
-      } else {
-        playerCoins += currentBet;
-        playTone(440, 0.1, "sine");
-        setBanner(`သရေကျပါတယ်! လောင်းကြေး ${currentBet.toLocaleString()} Coin ပြန်ရ`);
-      }
-
-      saveAndRenderWallets();
-    }
-
-    document.querySelectorAll(".chip").forEach((chip) => {
-      chip.addEventListener("click", () => {
-        if (inRound) return;
-        playTone(500, 0.05, "sine");
-        document.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
-        chip.classList.add("active");
-        currentBet = parseInt(chip.dataset.bet, 10);
-        saveAndRenderWallets();
-      });
-    });
-
-    soundToggleBtn.addEventListener("click", () => {
-      soundEnabled = !soundEnabled;
-      soundToggleBtn.textContent = soundEnabled ? "🔊" : "🔇";
-    });
-
-    const topupModal = document.getElementById("topupModal");
-    document.getElementById("openTopupBtn").addEventListener("click", () => topupModal.classList.add("open"));
-    document.getElementById("closeTopupBtn").addEventListener("click", () => topupModal.classList.remove("open"));
-    document.querySelectorAll(".pack-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const add = parseInt(btn.dataset.add, 10);
-        playerCoins += add;
-        saveAndRenderWallets();
-        topupModal.classList.remove("open");
-        playTone(760, 0.14, "sine");
-        setBanner(`Virtual Coin +${add.toLocaleString()} ထည့်သွင်းပြီးပါပြီ!`, "win");
-      });
-    });
-
-    dealBtn.addEventListener("click", startDeal);
-    drawBtn.addEventListener("click", playerDraw);
-    standBtn.addEventListener("click", resolveRound);
-
-    saveAndRenderWallets();
-  </script>
-</body>
-</html>
+    const tg = window.Telegram && window.Telegram.W

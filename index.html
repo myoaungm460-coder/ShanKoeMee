@@ -1,215 +1,454 @@
-‎<!DOCTYPE html>
-‎<html lang="my">
-‎<head>
-‎  <meta charset="UTF-8" />
-‎  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-‎  <title>Shan Koe Mee Mini Game</title>
-‎  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-‎  <style>
-‎    * { box-sizing: border-box; font-family: sans-serif; }
-‎    body {
-‎      margin: 0; padding: 16px;
-‎      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-‎      color: #ffffff; min-height: 100vh;
-‎      display: flex; flex-direction: column; justify-content: space-between;
-‎    }
-‎    .header {
-‎      display: flex; justify-content: space-between; align-items: center;
-‎      background: rgba(255, 255, 255, 0.1);
-‎      padding: 12px 16px; border-radius: 12px;
-‎    }
-‎    .coin-box {
-‎      background: #f1c40f; color: #000; font-weight: bold;
-‎      padding: 6px 12px; border-radius: 20px;
-‎    }
-‎    .creator-box {
-‎      font-size: 13px; color: #ffd166; text-align: center;
-‎      background: rgba(0, 0, 0, 0.25);
-‎      padding: 6px 10px; border-radius: 8px; margin-bottom: 10px;
-‎    }
-‎    .table-area {
-‎      text-align: center; background: rgba(0, 0, 0, 0.3);
-‎      padding: 20px; border-radius: 16px; margin: 10px 0 16px 0;
-‎    }
-‎    .cards-row {
-‎      display: flex; justify-content: center; gap: 10px;
-‎      min-height: 90px; margin: 12px 0;
-‎    }
-‎    .card {
-‎      width: 60px; height: 85px; background: #fff; color: #000;
-‎      border-radius: 8px; display: flex; flex-direction: column;
-‎      justify-content: center; align-items: center;
-‎      font-size: 20px; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-‎    }
-‎    .red { color: #e74c3c; }
-‎    .status-text {
-‎      font-size: 17px; font-weight: bold; color: #2ecc71;
-‎      min-height: 36px; margin: 10px 0;
-‎    }
-‎    .btn-group {
-‎      display: flex; gap: 10px; justify-content: center;
-‎    }
-‎    button {
-‎      padding: 12px 20px; font-size: 16px; font-weight: bold;
-‎      border: none; border-radius: 10px; cursor: pointer; flex: 1;
-‎    }
-‎    .btn-deal { background: #27ae60; color: white; }
-‎    .btn-draw { background: #e67e22; color: white; }
-‎    .btn-stand { background: #2980b9; color: white; }
-‎    button:disabled { opacity: 0.4; cursor: not-allowed; }
-‎  </style>
-‎</head>
-‎<body>
-‎
-‎  <div>
-‎    <div class="header">
-‎      <div>
-‎        <div id="user-name" style="font-weight:bold;">Player</div>
-‎        <div id="user-id" style="font-size:12px; color:#ccc;">ID: Guest</div>
-‎      </div>
-‎      <div class="coin-box">💰 <span id="coins">1000</span></div>
-‎    </div>
-‎
-‎    <div class="table-area">
-‎      <div class="creator-box">
-‎        🛠️ Creator Fee (5%): <span id="creator-profit">0</span>
-‎      </div>
-‎
-‎      <div>ဒိုင် (Dealer) - <span id="dealer-score">?</span></div>
-‎      <div class="cards-row" id="dealer-cards"></div>
-‎
-‎      <div class="status-text" id="status">ပွဲစတင်ရန် "ကတ်ဝေမည်" ကိုနှိပ်ပါ</div>
-‎
-‎      <div>သင့်ကတ်များ (Player) - <span id="player-score">0</span> ပေါက်</div>
-‎      <div class="cards-row" id="player-cards"></div>
-‎    </div>
-‎  </div>
-‎
-‎  <div class="btn-group">
-‎    <button class="btn-deal" id="btn-deal" onclick="startGame()">ကတ်ဝေမည် (100)</button>
-‎    <button class="btn-draw" id="btn-draw" onclick="drawCard()" disabled>ကတ်ထပ်ဆွဲ</button>
-‎    <button class="btn-stand" id="btn-stand" onclick="stand()" disabled>ရပ်မည်</button>
-‎  </div>
-‎
-‎  <script>
-‎    const tg = window.Telegram.WebApp;
-‎    tg.expand();
-‎    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-‎      document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
-‎      document.getElementById('user-id').innerText = "ID: " + tg.initDataUnsafe.user.id;
-‎    }
-‎
-‎    let coins = 1000;
-‎    let creatorProfit = 0; // ဂိမ်းဖန်တီးသူဘက် ရရှိမယ့် ဖြတ်ယူငွေ/အမှတ်
-‎    const feeRate = 0.05;  // ၅% (ဥပမာ - ၁၀၀ နိုင်ရင် ၅ ဖြတ်မယ်)
-‎    const betAmount = 100;
-‎
-‎    let deck = [], playerHand = [], dealerHand = [];
-‎    const suits = ['♠', '♥', '♦', '♣'];
-‎    const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
-‎
-‎    function createDeck() {
-‎      deck = [];
-‎      for (let s of suits) {
-‎        for (let v of values) deck.push({ suit: s, value: v });
-‎      }
-‎      deck.sort(() => Math.random() - 0.5);
-‎    }
-‎
-‎    function getCardPoints(card) {
-‎      if (['10', 'J', 'Q', 'K'].includes(card.value)) return 0;
-‎      if (card.value === 'A') return 1;
-‎      return parseInt(card.value);
-‎    }
-‎
-‎    function calcScore(hand) {
-‎      let sum = hand.reduce((acc, c) => acc + getCardPoints(c), 0);
-‎      return sum % 10;
-‎    }
-‎
-‎    function renderCards(hand, elementId, hide = false) {
-‎      const container = document.getElementById(elementId);
-‎      container.innerHTML = '';
-‎      hand.forEach(c => {
-‎        const div = document.createElement('div');
-‎        div.className = 'card' + ((c.suit === '♥' || c.suit === '♦') && !hide ? ' red' : '');
-‎        div.innerHTML = hide ? '🂠' : `<div>${c.value}</div><div>${c.suit}</div>`;
-‎        container.appendChild(div);
-‎      });
-‎    }
-‎
-‎    function applyWinWithFee(grossWin) {
-‎      // ဥပမာ - grossWin က 200 (bet 100 + win 100) ဆိုရင်
-‎      // နိုင်တဲ့အမြတ် (profitPart) 100 ထဲက 5% ဖြစ်တဲ့ 5 ကို ဖြတ်ယူပါတယ်
-‎      let profitPart = Math.max(0, grossWin - betAmount);
-‎      let fee = Math.floor(profitPart * feeRate);
-‎      let finalCredit = grossWin - fee;
-‎
-‎      coins += finalCredit;
-‎      creatorProfit += fee;
-‎
-‎      document.getElementById('coins').innerText = coins;
-‎      document.getElementById('creator-profit').innerText = creatorProfit;
-‎      return { fee, finalCredit };
-‎    }
-‎
-‎    function startGame() {
-‎      if (coins < betAmount) { alert("Coin မလုံလောက်ပါ!"); return; }
-‎      coins -= betAmount;
-‎      document.getElementById('coins').innerText = coins;
-‎
-‎      createDeck();
-‎      playerHand = [deck.pop(), deck.pop()];
-‎      dealerHand = [deck.pop(), deck.pop()];
-‎      renderCards(playerHand, 'player-cards');
-‎      renderCards(dealerHand, 'dealer-cards', true);
-‎
-‎      let pScore = calcScore(playerHand);
-‎      document.getElementById('player-score').innerText = pScore;
-‎      document.getElementById('dealer-score').innerText = '?';
-‎      document.getElementById('status').innerText = "ကတ်ထပ်ဆွဲမလား၊ ရပ်မလား ရွေးပါ";
-‎
-‎      document.getElementById('btn-deal').disabled = true;
-‎      document.getElementById('btn-draw').disabled = false;
-‎      document.getElementById('btn-stand').disabled = false;
-‎
-‎      if (pScore >= 8) stand();
-‎    }
-‎
-‎    function drawCard() {
-‎      playerHand.push(deck.pop());
-‎      renderCards(playerHand, 'player-cards');
-‎      document.getElementById('player-score').innerText = calcScore(playerHand);
-‎      stand();
-‎    }
-‎
-‎    function stand() {
-‎      if (calcScore(dealerHand) < 5) dealerHand.push(deck.pop());
-‎      renderCards(dealerHand, 'dealer-cards', false);
-‎
-‎      let pScore = calcScore(playerHand);
-‎      let dScore = calcScore(dealerHand);
-‎      document.getElementById('dealer-score').innerText = dScore;
-‎
-‎      let msg = "";
-‎      if (pScore > dScore) {
-‎        // ၁၀၀ နိုင်ရင် ၅ ဖြတ်ယူပြီး ဖန်တီးသူဘက် ပေါင်းထည့်ခြင်း
-‎        const result = applyWinWithFee(200);
-‎        msg = `🎉 သင်နိုင်ပါတယ်! (+${result.finalCredit} Coins, Fee -${result.fee})`;
-‎      } else if (pScore < dScore) {
-‎        msg = "😢 ဒိုင်နိုင်သွားပါတယ်!";
-‎      } else {
-‎        coins += betAmount;
-‎        document.getElementById('coins').innerText = coins;
-‎        msg = "🤝 သရေကျပါတယ်! (+100 Coins)";
-‎      }
-‎
-‎      document.getElementById('status').innerText = msg;
-‎      document.getElementById('btn-deal').disabled = false;
-‎      document.getElementById('btn-draw').disabled = true;
-‎      document.getElementById('btn-stand').disabled = true;
-‎    }
-‎  </script>
-‎</body>
-‎</html>
-‎
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shan Koe Mee Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-main: #0b0d10;
+      --bg-card: #151921;
+      --bg-elevated: #1e2430;
+      --text-primary: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-gold: #f5b942;
+      --accent-win: #22c55e;
+      --accent-lose: #ef4444;
+      --border-subtle: rgba(255, 255, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #171c26 0%, var(--bg-main) 70%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .header {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .badge {
+      background: #ffffff;
+      color: #0b0d10;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 999px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-top: 4px;
+      color: var(--accent-gold);
+    }
+
+    .table-area {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .hand-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .hand-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .score-pill {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+    }
+
+    .cards {
+      display: flex;
+      gap: 10px;
+      min-height: 92px;
+      align-items: center;
+    }
+
+    .card {
+      width: 64px;
+      height: 90px;
+      background: #ffffff;
+      color: #111827;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 7px;
+      font-weight: 800;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+      border: 1px solid #e2e8f0;
+    }
+
+    .card.red {
+      color: #dc2626;
+    }
+
+    .card-suit-center {
+      text-align: center;
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .card-bottom {
+      text-align: right;
+      font-size: 0.8rem;
+    }
+
+    .status-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 10px 12px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .status-win {
+      color: var(--accent-win);
+    }
+
+    .status-lose {
+      color: var(--accent-lose);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .controls .full {
+      grid-column: span 2;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.15s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #ffffff;
+      color: #0b0d10;
+    }
+
+    .btn-gold {
+      background: var(--accent-gold);
+      color: #0b0d10;
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div>
+        <div class="title">Shan Koe Mee</div>
+        <div class="subtitle">Telegram Mini Game</div>
+      </div>
+      <div class="badge">5% Creator Fee</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">သင့် Coin</div>
+        <div class="stat-value" id="playerCoins">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Creator Fee Pool (5%)</div>
+        <div class="stat-value" id="creatorPool">0</div>
+      </div>
+    </div>
+
+    <div class="table-area">
+      <div class="hand-section">
+        <div class="hand-header">
+          <span>ဒိုင်လူကြီး (Dealer)</span>
+          <span class="score-pill" id="dealerScore">ရမှတ်: -</span>
+        </div>
+        <div class="cards" id="dealerCards"></div>
+      </div>
+
+      <div class="status-box" id="statusText">ကတ်ဝေဖို့ အောက်က ခလုတ်ကို နှိပ်ပါ</div>
+
+      <div class="hand-section">
+        <div class="hand-header">
+          <span>သင် (Player)</span>
+          <span class="score-pill" id="playerScore">ရမှတ်: -</span>
+        </div>
+        <div class="cards" id="playerCards"></div>
+      </div>
+
+      <div class="controls">
+        <button class="btn-primary full" id="dealBtn">ကတ်ဝေမည်</button>
+        <button class="btn-gold" id="drawBtn" disabled>ကတ်ဆွဲမည်</button>
+        <button class="btn-secondary" id="standBtn" disabled>ရပ်မည်</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // ဒီနေရာမှာ Coin နဲ့ Fee ပမာဏကို လွယ်လွယ်ပြင်နိုင်ပါတယ်
+    // ==========================================
+    const CONFIG = {
+      STARTING_COINS: 5000, // အစ Coin ပမာဏ (လိုသလို ပြောင်းပါ)
+      BET_AMOUNT: 200,      // တစ်ပွဲ လောင်းကြေး Coin (လိုသလို ပြောင်းပါ)
+      FEE_RATE: 0.05        // 5% Creator Fee
+    };
+
+    const tg = window.Telegram && window.Telegram.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    const SUITS = [
+      { symbol: "♠", red: false },
+      { symbol: "♣", red: false },
+      { symbol: "♥", red: true },
+      { symbol: "♦", red: true }
+    ];
+    const RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+
+    let coins = CONFIG.STARTING_COINS;
+    let creatorFeeTotal = 0;
+    let deck = [];
+    let playerHand = [];
+    let dealerHand = [];
+    let roundActive = false;
+
+    const playerCoinsEl = document.getElementById("playerCoins");
+    const creatorPoolEl = document.getElementById("creatorPool");
+    const dealerCardsEl = document.getElementById("dealerCards");
+    const playerCardsEl = document.getElementById("playerCards");
+    const dealerScoreEl = document.getElementById("dealerScore");
+    const playerScoreEl = document.getElementById("playerScore");
+    const statusTextEl = document.getElementById("statusText");
+    const dealBtn = document.getElementById("dealBtn");
+    const drawBtn = document.getElementById("drawBtn");
+    const standBtn = document.getElementById("standBtn");
+
+    function updateLabels() {
+      dealBtn.textContent = `ကတ်ဝေမည် (${CONFIG.BET_AMOUNT})`;
+      playerCoinsEl.textContent = coins.toLocaleString();
+      creatorPoolEl.textContent = creatorFeeTotal.toLocaleString();
+    }
+
+    function createDeck() {
+      const d = [];
+      for (const suit of SUITS) {
+        for (const rank of RANKS) {
+          let val = 0;
+          if (rank === "A") val = 1;
+          else if (["10", "J", "Q", "K"].includes(rank)) val = 0;
+          else val = parseInt(rank, 10);
+          d.push({ rank, suit: suit.symbol, red: suit.red, val });
+        }
+      }
+      for (let i = d.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [d[i], d[j]] = [d[j], d[i]];
+      }
+      return d;
+    }
+
+    function calcScore(hand) {
+      const sum = hand.reduce((acc, c) => acc + c.val, 0);
+      return sum % 10;
+    }
+
+    function renderCards(container, hand) {
+      container.innerHTML = "";
+      hand.forEach((card) => {
+        const div = document.createElement("div");
+        div.className = `card ${card.red ? "red" : ""}`;
+        div.innerHTML = `
+          <div>${card.rank}${card.suit}</div>
+          <div class="card-suit-center">${card.suit}</div>
+          <div class="card-bottom">${card.rank}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function setStatus(text, type = "") {
+      statusTextEl.textContent = text;
+      statusTextEl.className = `status-box ${type ? "status-" + type : ""}`;
+    }
+
+    function startRound() {
+      if (coins < CONFIG.BET_AMOUNT) {
+        coins = CONFIG.STARTING_COINS;
+        setStatus(`Coin ကုန်သွားသဖြင့် ${CONFIG.STARTING_COINS.toLocaleString()} Coin ပြန်ဖြည့်ပေးထားပါတယ်`);
+        updateLabels();
+        return;
+      }
+
+      coins -= CONFIG.BET_AMOUNT;
+      updateLabels();
+
+      deck = createDeck();
+      playerHand = [deck.pop(), deck.pop()];
+      dealerHand = [deck.pop(), deck.pop()];
+      roundActive = true;
+
+      renderCards(playerCardsEl, playerHand);
+      renderCards(dealerCardsEl, dealerHand);
+
+      playerScoreEl.textContent = `ရမှတ်: ${calcScore(playerHand)}`;
+      dealerScoreEl.textContent = `ရမှတ်: ${calcScore(dealerHand)}`;
+
+      dealBtn.disabled = true;
+      drawBtn.disabled = false;
+      standBtn.disabled = false;
+      setStatus("ကတ်ထပ်ဆွဲမလား၊ ရပ်မလား ရွေးပါ");
+    }
+
+    function drawCard() {
+      if (!roundActive || playerHand.length >= 3) return;
+      playerHand.push(deck.pop());
+      renderCards(playerCardsEl, playerHand);
+      playerScoreEl.textContent = `ရမှတ်: ${calcScore(playerHand)}`;
+      drawBtn.disabled = true;
+      finishRound();
+    }
+
+    function finishRound() {
+      roundActive = false;
+      drawBtn.disabled = true;
+      standBtn.disabled = true;
+      dealBtn.disabled = false;
+
+      if (calcScore(dealerHand) <= 4 && dealerHand.length < 3) {
+        dealerHand.push(deck.pop());
+        renderCards(dealerCardsEl, dealerHand);
+      }
+
+      const pScore = calcScore(playerHand);
+      const dScore = calcScore(dealerHand);
+      playerScoreEl.textContent = `ရမှတ်: ${pScore}`;
+      dealerScoreEl.textContent = `ရမှတ်: ${dScore}`;
+
+      const grossWin = CONFIG.BET_AMOUNT * 2;
+
+      if (pScore > dScore) {
+        const fee = Math.floor(grossWin * CONFIG.FEE_RATE);
+        const netWin = grossWin - fee;
+        coins += netWin;
+        creatorFeeTotal += fee;
+        setStatus(`နိုင်ပါတယ်! +${netWin} Coin ရရှိ (5% Fee: -${fee})`, "win");
+      } else if (pScore < dScore) {
+        setStatus(`ရှုံးပါတယ်! -${CONFIG.BET_AMOUNT} Coin`, "lose");
+      } else {
+        coins += CONFIG.BET_AMOUNT;
+        setStatus(`သရေကျပါတယ်! လောင်းကြေး ${CONFIG.BET_AMOUNT} Coin ပြန်ရ`);
+      }
+
+      updateLabels();
+    }
+
+    dealBtn.addEventListener("click", startRound);
+    drawBtn.addEventListener("click", drawCard);
+    standBtn.addEventListener("click", finishRound);
+
+    updateLabels();
+  </script>
+</body>
+</html>
